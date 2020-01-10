@@ -2,6 +2,7 @@ const yargs = require('yargs')
 const path = require('path')
 const fs = require('fs')
 const paths = { source: null, dist: null }
+const folder = require('./Folder_2')
 
 const argv = yargs
   .usage('Usage: $0 [options]')
@@ -42,7 +43,7 @@ fs.copyFile(folder, err => {
 })
 
 function startCopyFile (_dir) {
-  fs.readdir(_dir, function (err, items) {
+  fs.readdir(_dir, function (items) {
     for (let i = 0; i < items.length; i++) {
       if (fs.lstatSync(_dir + '/' + items[i]).isDirectory()) {
         startCopyFile(_dir + '/' + items[i])
@@ -70,7 +71,8 @@ const sortFiles = (src) => {
           sortFiles(currentUrl)
         } else {
           console.info(currentUrl)
-          console.log("")
+          console.log(startCopyFile)
+          console.log(error)
         }
       })
     }
