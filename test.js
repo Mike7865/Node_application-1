@@ -2,7 +2,7 @@ const yargs = require('yargs')
 const path = require('path')
 const fs = require('fs')
 const paths = { source: null, dist: null }
-const folder = require('./Folder_2')
+const del = require('del')
 
 const argv = yargs
   .usage('Usage: $0 [options]')
@@ -34,26 +34,6 @@ console.log(argv.entry, argv.output)
 paths.source = path.normalize(path.join(__dirname, argv.entry))
 paths.dist = path.normalize(path.join(__dirname, argv.output))
 
-if (!fs.existsSync('./Folder_2')) {
-  fs.mkdirSync('./Folder_2')
-}
-
-fs.copyFile(folder, err => {
-  console.error(err)
-})
-
-function startCopyFile (_dir) {
-  fs.readdir(_dir, function (items) {
-    for (let i = 0; i < items.length; i++) {
-      if (fs.lstatSync(_dir + '/' + items[i]).isDirectory()) {
-        startCopyFile(_dir + '/' + items[i])
-      } else {
-        fs.copyFile(_dir + '/' + items[i], `./sss/ddd/${items[i]}`)
-      }
-    }
-  })
-}
-
 const sortFiles = (src) => {
   fs.readdir(src, (error, files) => {
     if (error) {
@@ -70,12 +50,27 @@ const sortFiles = (src) => {
         if (state.isDirectory()) {
           sortFiles(currentUrl)
         } else {
-          console.info(currentUrl)
-          console.log(startCopyFile)
-          console.log(error)
+          createDir(paths.dist)
+          copyFile(currentUrl, files[index])
         }
       })
     }
+  })
+}
+
+function createDir (url) {
+  if (!fs.existsSync(path)) {
+    fs.mkdir(url, () => {})
+  }
+}
+
+function copyFile (currentUrl, fileName) {
+  const targetDir = path.join(paths.dist, fileName[0].toUpperCase())
+  createDir(targetDir)
+  fs.copyFile(currentUrl, path.join(targetDir, fileName), (error) => {
+    if (error) throw error
+
+    console.log('copie =>', targetDir)
   })
 }
 
@@ -91,6 +86,7 @@ process.on('exit', code => {
       break
     default:
       console.log('done')
+      del.sync(path.source)
       break
   }
 })
