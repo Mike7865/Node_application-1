@@ -2,7 +2,6 @@ const yargs = require('yargs')
 const path = require('path')
 const fs = require('fs')
 const paths = { source: null, dist: null }
-const del = require('del')
 
 const argv = yargs
   .usage('Usage: $0 [options]')
@@ -26,7 +25,7 @@ const argv = yargs
     describe: 'Delete source directory',
     default: false
   })
-  .epilog('First homework on the node.js course')
+  .epilog('Second homework on the node.js course')
   .argv
 
 console.log(argv.entry, argv.output)
@@ -34,47 +33,72 @@ console.log(argv.entry, argv.output)
 paths.source = path.normalize(path.join(__dirname, argv.entry))
 paths.dist = path.normalize(path.join(__dirname, argv.output))
 
-const sortFiles = (src) => {
-  fs.readdir(src, (error, files) => {
-    if (error) {
-      process.exit(500)
-    }
+const completeds = []
 
-    if (!files.length) {
-      process.exit(404)
-    }
+const sortFiles = async (src) => {
+  const rd = readdir(src)
+  const files = await rd
 
-    for (let index = 0; index < files.length; index++) {
-      const currentUrl = path.join(src, files[index])
-      fs.stat(currentUrl, (error, state) => {
-        if (state.isDirectory()) {
-          sortFiles(currentUrl)
-        } else {
-          createDir(paths.dist)
-          copyFile(currentUrl, files[index])
-        }
-      })
-    }
-  })
-}
+  for (let index = 0; index < files.length; index++) {
+    const currentUrl = path.join(src, files[index])
+    const stat = await getStat(currentUrl)
 
-function createDir (url) {
-  if (!fs.existsSync(path)) {
-    fs.mkdir(url, () => {})
+    if (stat.isDirectory()) {
+      await sortFiles(currentUrl)
+    } else {
+      console.log(currentUrl)
+      completeds.push(copyFile(currentUrl, path.join(paths.dist, files[index])))
+    }
   }
 }
 
-function copyFile (currentUrl, fileName) {
-  const targetDir = path.join(paths.dist, fileName[0].toUpperCase())
-  createDir(targetDir)
-  fs.copyFile(currentUrl, path.join(targetDir, fileName), (error) => {
-    if (error) throw error
+function getStat (url) {
+  return new Promise((resolve, reject) => {
+    fs.stat(url, (err, state) => {
+      if (err) {
+        throw err
+      }
 
-    console.log('copie =>', targetDir)
+      resolve(state)
+    })
   })
 }
 
-sortFiles(paths.source)
+function copyFile (currentUrl, dist) {
+  return new Promise((resolve, reject) => {
+    fs.copyFile(currentUrl, dist, (error) => {
+      if (error) {
+        throw error
+      }
+
+      resolve(true)
+    })
+  })
+}
+
+function readdir (src) {
+  return new Promise((resolve, reject) => {
+    fs.readdir(src, (error, files) => {
+      if (error) {
+        process.exit(500)
+      }
+
+      if (!files.length) {
+        process.exit(404)
+      }
+
+      resolve(files)
+    })
+  })
+}
+
+(async function () {
+  await sortFiles(paths.source)
+
+  Promise.all(completeds).then(() => {
+    console.log('delete')
+  })
+})()
 
 process.on('exit', code => {
   switch (code) {
@@ -86,7 +110,6 @@ process.on('exit', code => {
       break
     default:
       console.log('done')
-      del.sync(path.source)
       break
   }
 })
