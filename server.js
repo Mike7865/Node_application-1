@@ -2,6 +2,12 @@ const http = require("http")
 
 http.createServer (function(request, response) {
     
+  import http from 'http';
+
+  http.get('http', res => {
+    console.log(res.statusCode);
+  });
+
     console.log("Url: " + request.url)
     console.log("GET" + request.method)
     console.log("User-Agent: " + request.headers["user-agent"])
@@ -10,6 +16,8 @@ http.createServer (function(request, response) {
      
     response.end()
 }).listen(3000)
+
+request.send();
 
 const time = async (response) => {
 
