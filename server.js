@@ -1,32 +1,17 @@
 const http = require("http")
 
-http.createServer (function(request, response) {
-    
-  import http from 'http';
+http.createServer(function (request, response) {
+  var now = new Date()
 
-  http.get('http', res => {
-    console.log(res.statusCode);
-  });
+  console.log(request.method)
 
-    console.log("Url: " + request.url)
-    console.log("GET" + request.method)
-    console.log("User-Agent: " + request.headers["user-agent"])
-    console.log("Все заголовки")
-    console.log(request.headers)
-     
-    response.end()
-}).listen(3000)
+  function callback () {
 
-request.send();
+    console.log(now)
+  }
 
-const time = async (response) => {
-
-    if (response.ok) { 
-      let json = await response.time();
-    } else {
-      console.log("Ошибка HTTP: " + response.status);
-    }
-}
-
-var t = new Date()
-console.log(t.toTimeString())
+  var interval = setInterval(callback, 1000)
+  setTimeout(() => {
+    clearInterval(interval) 
+  }, 5000)
+}).listen(4000)
